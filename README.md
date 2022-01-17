@@ -1,4 +1,4 @@
-@doop/service-{{FIXME}}
+@doop/service-locking
 ==================
 
-A {{FIXME}} service for the [Doop framework](https://github.com/MomsFriendlyDevCo/Doop).
+A mutex locking service for the [Doop framework](https://github.com/MomsFriendlyDevCo/Doop).
