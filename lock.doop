@@ -1,4 +1,4 @@
-<script lang="js" backend on="middleware">
+<script lang="js" backend on="middleware, gulp">
 const Lock = require('@momsfriendlydevco/lock');
 
 app.lock = new Lock(app.config.lock);
