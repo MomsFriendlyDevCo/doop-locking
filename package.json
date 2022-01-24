@@ -1,5 +1,5 @@
 {
-  "name": "@doop/service-locking",
+  "name": "@doop/locking",
   "version": "1.0.1",
   "description": "A mutex locking service for the Doop framework",
   "repository": {
