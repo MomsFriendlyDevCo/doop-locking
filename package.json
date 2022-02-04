@@ -16,7 +16,11 @@
   },
   "homepage": "https://github.com/MomsFriendlyDevCo/doop-service-locking#readme",
   "dependencies": {
+    "@momsfriendlydevco/gulpy": "^1.4.3",
     "@momsfriendlydevco/lock": "^1.2.16",
-    "gulp": "^4.0.2"
-  }
+    "debug": "^4.3.3"
+  },
+  "workspaces": [
+    "../*"
+  ]
 }
