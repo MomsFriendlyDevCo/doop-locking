@@ -1,4 +1,4 @@
-const debug = require('debug')('doop:lock');
+const debug = require('debug')('doop:locking');
 debug('Init gulp lock');
 
 const gulp = require('gulp');
