@@ -42,11 +42,11 @@ app.component('lock', {
 				.then(()=> this.$http.post('/api/locks/create', this.lock))
 				.then(data=> {
 					this.isMyLock = true;
-					this.dismiss();
+					this.accessEnable();
 				})
 				.catch(e => {
 					if (e !== 'Already locked') this.$toast.catch(e); // Report all non locking errors
-					this.show();
+					this.accessDisable();
 				})
 				.finally(()=> this.$loader.stop())
 				.finally(()=> this.$debug('LOCK CREATE DONE', {isMyLock: this.isMyLock}))
@@ -56,7 +56,7 @@ app.component('lock', {
 
 		/**
 		* Check if the lock still exists or touch it if we own it
-		* This function calls dismiss() when the lock is released
+		* This function calls accessEnable() when the lock is released
 		* @returns {Promise} A promise which will resolve after one check cycle
 		*/
 		tick() {
@@ -73,12 +73,12 @@ app.component('lock', {
 					// User is owner of existing lock
 					} else if (this.lockData?.user == this.$session.data._id) { // Its now our lock
 						this.isMyLock = true;
-						return this.dismiss();
+						return this.accessEnable();
 
 					// Someone else is owner of existing lock
 					} else if (this.lockData?.user != this.$session.data._id) { // Lock is owned by someone else
 						this.isMyLock = false;
-						return this.show();
+						return this.accessDisable();
 					}
 				})
 				//.catch(e => this.$debug('catch', e))
@@ -90,7 +90,7 @@ app.component('lock', {
 		/**
 		* A lock is present - display the modal and keep checking until it expires
 		*/
-		show() {
+		accessDisable() {
 			if (this.isShowingModal) return;
 
 			this.$debug('Show lock dialog', this._uid);
@@ -106,7 +106,7 @@ app.component('lock', {
 		* Dismiss the dialog
 		* NOTE: This does not release the lock, just closes the dialog, it should not be called directly
 		*/
-		dismiss() {
+		accessEnable() {
 			if (!this.isShowingModal) return;
 
 			this.$debug('Dismiss lock dialog');
@@ -117,7 +117,6 @@ app.component('lock', {
 
 		/**
 		* Attempt to transfer the lock to this user
-		* This function calls dismiss() when the lock is released
 		* @returns {Promise} A promise which will resolve if successful or throw if not
 		*/
 		kick() {
