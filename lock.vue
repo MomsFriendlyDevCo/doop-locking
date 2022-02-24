@@ -8,9 +8,9 @@ const $debug =  Debug('@doop/locking').enable(true);
 * @param {string} [title] Optional title for the modal
 * @param {string} [body="This document is locked by"] Message to display when a lock is present
 * @param {number} [queryInterval=2000] How frequently to check the lock exists
-* @param {string} [lockedClass="disabled"] Optional class for lock wrapper
 * @param {boolean} [modal=true] Optionally disable modal display
 *
+* @slot default Main content area with access to lock properties
 * @slot modal Overridable modal design
 * @slot modal-body Overridable body area
 */
@@ -28,7 +28,6 @@ app.component('lock', {
 		// TODO: As a slot
 		body: {type: String, default: 'This document is locked by'},
 		queryInterval: {type: Number, default: 2000},
-		lockedClass: {type: String, default: 'disabled'},
 		modal: {type: Boolean, default: true},
 	},
 	methods: {
@@ -150,8 +149,8 @@ app.component('lock', {
 </script>
 
 <template>
-	<div :class="`lock ${!isMyLock ? lockedClass : ''}`">
-		<slot></slot>
+	<div class="lock">
+		<slot name="default" :is-my-lock="isMyLock" :is-showing-modal="isShowingModal"></slot>
 		<slot name="modal">
 			<div :id="`modal-lock-${_uid}`" class="modal" tabindex="-1" role="dialog">
 				<div class="modal-dialog" role="document">
