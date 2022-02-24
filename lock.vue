@@ -2,15 +2,14 @@
 import Debug from '@doop/debug';
 const $debug =  Debug('@doop/locking').enable(true);
 
-// TODO: Either readonly or disabled contents
-// TODO: with or without a modal
-
 /**
 * Contents of the $prompt.dialog() shown when a document is locked
 * @param {Object} lock The lock to obtain as a complex object (hashed by the backend)
 * @param {string} [title] Optional title for the modal
 * @param {string} [body="This document is locked by"] Message to display when a lock is present
 * @param {number} [queryInterval=2000] How frequently to check the lock exists
+* @param {string} [lockedClass="disabled"] Optional class for lock wrapper
+* @param {boolean} [modal=true] Optionally disable modal display
 *
 * @slot modal Overridable modal design
 * @slot modal-body Overridable body area
@@ -29,6 +28,8 @@ app.component('lock', {
 		// TODO: As a slot
 		body: {type: String, default: 'This document is locked by'},
 		queryInterval: {type: Number, default: 2000},
+		lockedClass: {type: String, default: 'disabled'},
+		modal: {type: Boolean, default: true},
 	},
 	methods: {
 		/**
@@ -42,11 +43,11 @@ app.component('lock', {
 				.then(()=> this.$http.post('/api/locks/create', this.lock))
 				.then(data=> {
 					this.isMyLock = true;
-					this.accessEnable();
+					this.dismiss();
 				})
 				.catch(e => {
 					if (e !== 'Already locked') this.$toast.catch(e); // Report all non locking errors
-					this.accessDisable();
+					this.show();
 				})
 				.finally(()=> this.$loader.stop())
 				.finally(()=> this.$debug('LOCK CREATE DONE', {isMyLock: this.isMyLock}))
@@ -56,7 +57,7 @@ app.component('lock', {
 
 		/**
 		* Check if the lock still exists or touch it if we own it
-		* This function calls accessEnable() when the lock is released
+		* This function calls dismiss() when the lock is released
 		* @returns {Promise} A promise which will resolve after one check cycle
 		*/
 		tick() {
@@ -73,12 +74,12 @@ app.component('lock', {
 					// User is owner of existing lock
 					} else if (this.lockData?.user == this.$session.data._id) { // Its now our lock
 						this.isMyLock = true;
-						return this.accessEnable();
+						return this.dismiss();
 
 					// Someone else is owner of existing lock
 					} else if (this.lockData?.user != this.$session.data._id) { // Lock is owned by someone else
 						this.isMyLock = false;
-						return this.accessDisable();
+						return this.show();
 					}
 				})
 				//.catch(e => this.$debug('catch', e))
@@ -90,8 +91,8 @@ app.component('lock', {
 		/**
 		* A lock is present - display the modal and keep checking until it expires
 		*/
-		accessDisable() {
-			if (this.isShowingModal) return;
+		show() {
+			if (!this.modal || this.isShowingModal) return;
 
 			this.$debug('Show lock dialog', this._uid);
 			this.$prompt.modal({
@@ -106,8 +107,8 @@ app.component('lock', {
 		* Dismiss the dialog
 		* NOTE: This does not release the lock, just closes the dialog, it should not be called directly
 		*/
-		accessEnable() {
-			if (!this.isShowingModal) return;
+		dismiss() {
+			if (!this.modal || !this.isShowingModal) return;
 
 			this.$debug('Dismiss lock dialog');
 			this.$prompt.close(true);
@@ -149,7 +150,7 @@ app.component('lock', {
 </script>
 
 <template>
-	<div class="lock">
+	<div :class="`lock ${!isMyLock ? lockedClass : ''}`">
 		<slot></slot>
 		<slot name="modal">
 			<div :id="`modal-lock-${_uid}`" class="modal" tabindex="-1" role="dialog">
