@@ -5,7 +5,8 @@ const $debug =  Debug('@doop/locking').enable(true);
 /**
 * Contents of the $prompt.dialog() shown when a document is locked
 * @param {Object} lock The lock to obtain as a complex object (hashed by the backend)
-* @param {string} [title] Optional title for the modal
+* @param {boolean} [enabled=true] Enable/disable locking mechanism as required
+* @param {string} [title=""] Optional title for the modal
 * @param {string} [body="This document is locked by"] Message to display when a lock is present
 * @param {number} [queryInterval=2000] How frequently to check the lock exists
 * @param {boolean} [modal=true] Optionally disable modal display
@@ -13,6 +14,16 @@ const $debug =  Debug('@doop/locking').enable(true);
 * @slot default Main content area with access to lock properties
 * @slot modal Overridable modal design
 * @slot modal-body Overridable body area
+*
+* @example Simple implementation without expose properties
+* <lock :lock="{ foo: 'bar' }">Contents</lock>
+*
+* @example Default slot properties exposed
+* <lock :lock="{ foo: 'bar' }" #default="lock">{{lock.isMyLock}}</lock>
+*
+* @example Default slot properties exposed to template
+* <lock :lock="{ foo: 'bar' }"><template #default="lock">{{lock.isMyLock}}</template></lock>
+*
 */
 app.component('lock', {
 	data() { return {
@@ -24,8 +35,8 @@ app.component('lock', {
 	}},
 	props: {
 		lock: {type: Object, required: true},
+		enabled:  {type: Boolean, default: true},
 		title: {type: String, default: ''},
-		// TODO: As a slot
 		body: {type: String, default: 'This document is locked by'},
 		queryInterval: {type: Number, default: 2000},
 		modal: {type: Boolean, default: true},
@@ -37,6 +48,8 @@ app.component('lock', {
 		* @returns {Promise<boolean>} Boolean true if the lock creation was successful, false otherwise
 		*/
 		create() {
+			if (!this.enabled) return;
+
 			return Promise.resolve()
 				.then(()=> this.$loader.start()) // Foreground loader to block UI until we know if a lock exists
 				.then(()=> this.$http.post('/api/locks/create', this.lock))
@@ -91,7 +104,7 @@ app.component('lock', {
 		* A lock is present - display the modal and keep checking until it expires
 		*/
 		show() {
-			if (!this.modal || this.isShowingModal) return;
+			if (!this.enabled || !this.modal || this.isShowingModal) return;
 
 			this.$debug('Show lock dialog', this._uid);
 			this.$prompt.modal({
