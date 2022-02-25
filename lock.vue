@@ -58,7 +58,7 @@ app.component('lock', {
 					this.dismiss();
 				})
 				.catch(e => {
-					if (e !== 'Already locked') this.$toast.catch(e); // Report all non locking errors
+					if (e.err !== 'Already locked') this.$toast.catch(e); // Report all non locking errors
 					this.show();
 				})
 				.finally(()=> this.$loader.stop())
