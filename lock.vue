@@ -147,9 +147,10 @@ app.component('lock', {
 	},
 
 	beforeDestroy() {
-		clearTimeout(this.lockTimer); // Release timer handle if we have one
 		return Promise.resolve()
 			.then(() => this.lockPending) // Wait for any pending ticks
+			.then(() => clearTimeout(this.lockTimer)) // Release timer handle if we have one)
+			// FIXME: Use "navigator.sendBeacon()"?
 			.then(() => this.$http.post('/api/locks/release', this.lock))
 			.then(res => this.$debug('Released', res.data))
 			.catch(this.$toast.catch);
