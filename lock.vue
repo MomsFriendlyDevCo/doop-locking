@@ -150,9 +150,14 @@ app.component('lock', {
 		return Promise.resolve()
 			.then(() => this.lockPending) // Wait for any pending ticks
 			.then(() => clearTimeout(this.lockTimer)) // Release timer handle if we have one)
-			// FIXME: Use "navigator.sendBeacon()"?
-			.then(() => this.$http.post('/api/locks/release', this.lock))
-			.then(res => this.$debug('Released', res.data))
+			// Using "sendBeacon" will background the request without waiting for response
+			// FIXME: Is this unreliable or are unload events unreliable?
+			// @see https://volument.com/blog/sendbeacon-is-broken
+			.then(() => navigator.sendBeacon(
+				'/api/locks/release',
+				new Blob([JSON.stringify(this.lock, null, 2)], {type : 'application/json'})
+			))
+			.then(() => this.$debug('Released'))
 			.catch(this.$toast.catch);
 	},
 });
